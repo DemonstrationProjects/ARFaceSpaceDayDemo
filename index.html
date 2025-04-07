@@ -55,29 +55,50 @@
       let clock = new THREE.Clock();
       let mixer = null;
       let fade = document.getElementById('fade');
+      let helmetModel = document.querySelector("#helmetModel");
+      let helmetModelAnim;
+
+      helmetModel.addEventListener("model-loaded", function () {
+          let helmetModel3D = helmetModel.object3D;
+          mixer = new THREE.AnimationMixer(helmetModel3D.children[0]);
+          let clips = helmetModel3D.children[0].animations;
+          if (clips.length > 0) {
+            helmetModelAnim = mixer.clipAction(clips[0]);
+            helmetModelAnim.setLoop(THREE.LoopOnce);
+            helmetModelAnim.clampWhenFinished = true;
+          } else {
+            console.log("Animation not found");
+          }
+      });
 
       document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => { fade.style.opacity = 1;
             setTimeout(() => { fade.style.opacity = 0; }, 100);
           }, 1000);
-        // let helmetModel = document.querySelector("#helmetModel").object3D;
-        // console.log(helmetModel);
-        // mixer = new THREE.AnimationMixer(helmetModel);
-        // let clips = helmetModel.animations;
-
-        // if (clips.length > 0) {
-        //   let helmetModelAnim = mixer.clipAction(clips[0]);
-        //   helmetModelAnim.setLoop(THREE.LoopOnce);
-        //   helmetModelAnim.play();
-        // } else {
-        //   console.log("Animation not found");
-        // }
       });
 
+      
+
       backButton.addEventListener("click", () => {
-          fade.style.opacity = 1;
-          setTimeout(() => {window.location.href = 'https://demonstrationprojects.github.io/AirSpaceDay360/';}, 1000);
+          helmetModelAnim.play();
+          mixer.addEventListener('finished', (event) => {
+            console.log("Анимация завершена!", event);
+
+            fade.style.opacity = 1;
+            setTimeout(() => {
+                window.location.href = 'https://demonstrationprojects.github.io/AirSpaceDay360/';
+            }, 1000);
+        });
       }); 
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (mixer) {
+          let delta = clock.getDelta();
+          mixer.update(delta);
+        }
+      }
+      animate();
     </script> 
   </body>
 </html>
